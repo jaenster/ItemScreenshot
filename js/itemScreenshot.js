@@ -1,18 +1,34 @@
-//Item screenshots
-
-WebFont.load({
-    custom: {
-        families: ['AvQuest']
-    }
-});
-
-
+/*!
+ * itemScreenshot Library v1.0
+ * https://github.com/Fa-b/ItemScreenshot
+ * 
+ * A pure js solution to generate Diablo II item tooltips from json objects
+ * Obj format is the standard kolbot mulelogged item
+ * 
+ * Authors: Fa-b, laztheripper
+ * Date: 2020/03/11
+ */
 
 var itemScreenshot = {
-    hideRequirements    : true,
-    drawCursor          : true,
+    // Settings
+    
+    hideItemLevel       : true,
+    hideRequirements    : false,
+    hideSetCompletion   : false,
+    showItemColor       : false,
+    drawCursor          : "rnd",
     drawSockets         : true,
     drawEthereal        : true,
+
+    // ------ No touchy ------
+
+    font:   (function () { WebFont.load({custom: {families: ['AvQuest']}}); return "AvQuest";   }).call(),
+    font16: [
+        Font16.loadFont(0)
+    ],
+    
+    hand:   (function () { let img = new Image(); img.src = "assets/hand.png";      return img; }).call(),
+    socket: (function () { let img = new Image(); img.src = "assets/gemsocket.png"; return img; }).call(),
 
     bgnd: [
         (function () { let img = new Image(); img.src = "assets/bgnd1.png"; return img; }).call(),
@@ -21,35 +37,58 @@ var itemScreenshot = {
         (function () { let img = new Image(); img.src = "assets/bgnd4.png"; return img; }).call()
     ],
 
-    hand: (function () { let img = new Image(); img.src = "assets/hand.png"; return img; }).call(),
-    
-    socket: (function () { let img = new Image(); img.src = "assets/gemsocket.png"; return img; }).call(),
+    textColorMap: {
+        0: "#C4C4C4",      // WHITE
+        1: "#B04434",      // RED
+        2: "#18FC00",      // SET
+        3: "#787CE7",      // MAGIC
+        4: "#948064",      // UNIQUE
+        5: "#505050",      // DARK GRAY
+        6: "#000000",      // BLACK (UNUSED)
+        7: "#AC9C64",      // OCHER (UNUSED)
+        8: "#D08420",      // CRAFT
+        9: "#D8B864",      // RARE
+        10: "#186408",     // DARK GREEN (UNUSED)
+        11: "#A420FC",     // PURPLE (UNUSED)
+        12: "#287C14"      // GREEN (UNUSED)
+    },
 
-    textColorMap: [
-        "#C4C4C4",      // WHITE
-        "#B04434",      // RED
-        "#18FC00",      // SET
-        "#787CE7",      // MAGIC
-        "#948064",      // UNIQUE
-        "#505050",      // DARK GRAY
-        "WhiteSmoke",
-        "WhiteSmoke",
-        "#D08420",      // CRAFT
-        "#D8B864"       // RARE
+    colorStrings: [
+        "Unknown Color",//0
+        "Black",		//1
+        "Unknown Color",//2
+        "Black",		//3
+        "Light Blue", 	//4
+        "Dark Blue",	//5
+        "Crystal Blue",	//6
+        "Light Red",	//7
+        "Dark Red",		//8
+        "Crystal Red",	//9
+        "Light Green",	//10
+        "Dark Green",	//11
+        "Crystal Green",//12
+        "Light Yellow",	//13
+        "Dark Yellow",	//14
+        "Light Gold",	//15
+        "Dark Gold",	//16
+        "light Purple",	//17
+        "Dark Purple",	//18
+        "Orange",		//19
+        "White"			//20
     ],
 
     getItemDesc: function (desc) {
-        var i, out = [],
+        var i, out = [], setCompletionInd,
             stringColor = 0;
     
         if (!desc) {
-            return "";
+            return out;
         }
 
         var lines = desc.split("\n");
         
         for (var line in lines) {
-            out.push({ text: lines[line], color: [this.textColorMap[0]] });
+            out.push({ text: lines[line], color: [0] });
         }
     
         // Lines are normally in reverse. Add color tags if needed and reverse order.
@@ -59,34 +98,46 @@ var itemScreenshot = {
     
                 i += 1;
             } else {
+                if (i === 0 && this.hideItemLevel && out[i].text.indexOf(" (") > -1) {
+                    out[i].text = out[i].text.split(" (")[0];
+                }
+
                 // Remove all buggy color codes first ..
                 out[i].text = out[i].text.replace(/^((xff)|ÿc)/, "");
 				out[i].text = out[i].text.replace(/[0-9]((xff)|ÿc)/g, "");
                 
-                // Check if one of the requirements is not met if we decided to hide them
+                // Check if one of the requirements is not met or if we decided to hide them
                 if (this.hideRequirements && out[i].text.match(/^1/) &&
                     (out[i].text.match(/(strength:)/i) ||
                     out[i].text.match(/(dexterity:)/i) ||
                     out[i].text.match(/(level:)/i) ||
                     out[i].text.match(/(only\))$/i)) ){
                     // Clear red colors if necessary
-                    out[i].color[0] = this.textColorMap[0];
+                    out[i].color[0] = 0;
                 } else {
                     // .. Otherwise get the real color
-                    out[i].color[0] = this.textColorMap[parseInt(out[i].text[0])];
+                    out[i].color[0] = parseInt(out[i].text[0]);
+                }
+
+                if (i > 3 && out[i].color[0] === 4) {
+                    setCompletionInd = i;
                 }
                 
                 // Remove colorcode from desc
 				out[i].text = out[i].text.substring(1);
 				
 				// second color in same row will always be blue/'magic'
-                if (out[i].text.match(/(xff)|ÿc/))
-                    out[i].color.push("#787CE7");
+                if (out[i].text.match(/((xff)|ÿc)/))
+                    out[i].color.push(3);
             }
     
 			// using '$' as delimiter for inline color change here..
-            out[i].text = out[i].text.replace(/(xff)|ÿc([0-9!"+<;.*])/g, "\$");
+            out[i].text = out[i].text.replace(/((xff)|ÿc)([0-9!"+<;.*])/g, "\$");
             out[i].text = out[i].text.replace(/\\/g, "");
+        }
+
+        if (this.hideSetCompletion && setCompletionInd) {
+            out = out.slice(0, setCompletionInd);
         }
         
         return out;
@@ -96,9 +147,7 @@ var itemScreenshot = {
         return this.getItemDesc(description.toString().split("$")[0]);
     },
 
-    loaded: {},
-
-    create: function (item) {
+    drawScreenshot: function (item) {
         var strArray1 = this.cleanDecription(item.description);
         var num1 = 0;
         var tmp = document.createElement('canvas');
@@ -111,28 +160,23 @@ var itemScreenshot = {
                 num1 = size.width;
             }
         }
+
+        if (this.showItemColor && item.itemColor !== -1) {
+            strArray1.push({ text: "", color: ["#505050"]});
+            strArray1.push({ text: this.colorStrings[item.itemColor], color: [5]});
+        }
         
         if (num1 < 100)
             num1 = 100;
             
-        num2 = 16; //parseInt(ctx.font);
+        num2 = 16;
         
-        console.log("Width:", num1);
-
-        for (var i = 0; i < item.sockets.length; i++) {
-            if (item.sockets[i] === "gemsocket") continue;
-
-            var img = new Image();
-            img.src = "assets/gfx/" + item.sockets[i] + ".png";
-            img.onload = (function(name){
-                return function() {
-                    itemScreenshot.loaded[name] = this;
-                };
-            })(item.sockets[i]);
+        if (item.itemColor === -1) {
+            item.itemColor = 21;
         }
 
         var image = new Image();
-        image.src = "assets/gfx/" + item.image + ".png";
+        image.src = "assets/gfx/" + item.image + "/" + item.itemColor + ".png";
         
         image.onload = () => {
             var X, Y, Top, Left = 0
@@ -182,14 +226,14 @@ var itemScreenshot = {
             
             console.log("Drawing item gfx")
             if (this.drawEthereal && item.description.toLowerCase().indexOf("ethereal") > -1) graphics.globalAlpha = 0.5;
-            graphics.drawImage(image, (canvas.width - image.width) / 2, 5);
+            graphics.drawImage(image, Math.round((canvas.width - image.width) / 2), 5);
             graphics.globalAlpha = 1.0;
             
             if (this.drawSockets) {
-                let num3 = Math.round((canvas.width - image.width) / 2); // (item.width - image.width) / 2 originally
+                let num3 = Math.round((canvas.width - image.width) / 2);
                 let num4 = num3 + 14;
                 let num5 = num4 + 14;
-                let num6 = 5; // 5 originally
+                let num6 = 5;
                 let num7 = 34;
                 let num8 = 63;
                 let num9 = 92;
@@ -343,22 +387,20 @@ var itemScreenshot = {
                 default:
                     break;
                 }
-                
-                graphics.globalAlpha = 0.3;
-                socketPositions.forEach((position) => {
-                    graphics.drawImage(
-                        this.socket,
-                        position.x,
-                        position.y
-                    );
-                });
-                graphics.globalAlpha = 1.0;
 
                 for (var i = 0; i < item.sockets.length && socketPositions.length; i++) {
+                    graphics.globalAlpha = 0.3;
+                    graphics.drawImage(
+                        this.socket,
+                        socketPositions[i].x - 2,
+                        socketPositions[i].y + 1
+                    );
+                    graphics.globalAlpha = 1.0;
+
                     if (item.sockets[i] === "gemsocket") continue;
                     var img = new Image();
-                    img.src = "assets/gfx/" + item.sockets[i] + ".png";
-                    img.onload = (function(pos){
+                    img.src = "assets/gfx/" + item.sockets[i] + "/21.png";
+                    img.onload = (function(pos) {
                         return function() {
                             graphics.drawImage(
                                 this,  // Socketed item
@@ -369,71 +411,92 @@ var itemScreenshot = {
                     })(socketPositions[i]);
                 }
             }
-            
-            if (this.drawCursor) {
-                console.log("Drawing cursor");
-                graphics.drawImage(itemScreenshot.hand, ((canvas.width + image.width) / 2) - 5, 5 + 5);
-            }
 
             console.log("Drawing text");
             graphics.font = ctx.font;
             graphics.filter = "blur(0.2px)";
 
             for (var index in strArray1) {
-				pos = {
-					x: canvas.width / 2,
+				let pos = {
+					x: Math.round(canvas.width / 2),
 					y: (index * num2 + Top + num2 - 3.0) // -1 originally
 				};
 				
-				graphics.fillStyle = strArray1[index].color[0];
-				
-				if(strArray1[index].color.length > 1) {
+                shift = ctx.measureText(strArray1[index].text).width / 2
+                
+                if(strArray1[index].color.length > 1) {
+					leftText = strArray1[index].text.split("$")[0];
+                    Font16.drawText(graphics, pos.x - shift, pos.y, strArray1[index].text, strArray1[index].color[0]);
+                    Font16.drawText(graphics, pos.x + ctx.measureText(leftText).width - shift, pos.y, strArray1[index].text, strArray1[index].color[1]);
+				} else {
+					Font16.drawText(graphics, pos.x - shift, pos.y, strArray1[index].text, strArray1[index].color[0]);
+				}
+                
+				/* if(strArray1[index].color.length > 1) {
 					leftText = strArray1[index].text.split("$")[0];
 					rightText = strArray1[index].text.split("$")[1];
-					shift = (ctx.measureText(leftText).width + ctx.measureText(rightText).width) / 2
 					graphics.textAlign = "left";
 					graphics.fillText(leftText, pos.x - shift, pos.y);
-					graphics.fillStyle = strArray1[index].color[1];
+					graphics.fillStyle = this.textColorMap[strArray1[index].color[1]];
 					graphics.fillText(strArray1[index].text.split("$")[1], pos.x + ctx.measureText(leftText).width - shift, pos.y);
 				} else {
 					graphics.textAlign = "center";
 					graphics.fillText(strArray1[index].text, pos.x, pos.y);
-				}
+				} */
+                
 			}
+            
+            if (this.drawCursor) {
+                console.log("Drawing cursor");
+                function rnd(min, max) {
+                  return Math.floor(Math.random() * (max - min + 1) ) + min;
+                }
+                graphics.drawImage(itemScreenshot.hand, (canvas.width + image.width) / 2 - (this.drawCursor=="rnd"?rnd(2,15):5), 5 + (this.drawCursor=="rnd"?rnd(2,15):5));
+            }
         }
     },
 
-    sortCanvases: function () {
+    drawCompilation: function (items) {
         var packer = new GrowingPacker();
         var blocks = [];
         var list = $("#itemList");
         var canvas = document.createElement('canvas');
         canvas.width = 0;
         canvas.height = 0;
-        list.children().each(function(idx) {
-            var padding = parseInt($(this).css("padding-top"));
-            blocks.push({item: $(this), w: $(this).width() + padding, h: $(this).height() + padding});
-        });
         
-        blocks.sort(function(a,b) { return (b.h - a.h); });
-        packer.fit(blocks);
-        
-        canvas.width += packer.root.w;
-        canvas.height += packer.root.h;
-
-        var container = canvas.getContext('2d');
-        
-        for(var n = 0 ; n < blocks.length ; n++) {
-            var block = blocks[n];
-            if (block.fit) {
-                container.drawImage(block.item[0], block.fit.x, block.fit.y);
-            } else {
-                console.error("Couldn't pack image to canvas (Width Height):", block.w, block.h, "max. allowed size (Width Height):", packer.root.w, packer.root.h);
-            }
+        for (var idx in items) {
+            // Todo: add load callback
+            itemScreenshot.drawScreenshot(items[idx]);
         }
+        
+        // Todo: remove timeout
+        setTimeout(function() {
+            list.children().each(function(idx) {
+                var padding = parseInt($(this).css("padding-top"));
+                blocks.push({item: $(this), w: $(this).width() + padding, h: $(this).height() + padding});
+            });
+            
+            blocks.sort(function(a,b) { return (b.h - a.h); });
+            packer.fit(blocks);
+            
+            canvas.width += packer.root.w;
+            canvas.height += packer.root.h;
 
-        $("#itemList").empty();
-        $("#itemList").addClass("visible");
-        document.getElementById("itemList").append(canvas);
+            var container = canvas.getContext('2d');
+            
+            for(var n = 0 ; n < blocks.length ; n++) {
+                var block = blocks[n];
+                if (block.fit) {
+                    container.drawImage(block.item[0], block.fit.x, block.fit.y);
+                } else {
+                    console.error("Couldn't pack image to canvas (Width Height):", block.w, block.h, "max. allowed size (Width Height):", packer.root.w, packer.root.h);
+                }
+            }
+
+            $("#itemList").empty();
+            $("#itemList").addClass("visible");
+            document.getElementById("itemList").append(canvas);   
+        }, 200);
+        
     }
 }
