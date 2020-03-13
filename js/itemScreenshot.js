@@ -96,8 +96,8 @@ var itemScreenshot = {
                 }
 
                 // Remove all buggy color codes first ..
-                out[i].text = out[i].text.replace(/^((xff)|ÿc)/, "");
-				out[i].text = out[i].text.replace(/[0-9]((xff)|ÿc)/g, "");
+                out[i].text = out[i].text.replace(/^((xffc)|ÿc)/, "");
+				out[i].text = out[i].text.replace(/[0-9]((xffc)|ÿc)/g, "");
                 
                 // Check if one of the requirements is not met if we decided to hide them
                 if (this.hideRequirements && out[i].text.match(/^1/) &&
@@ -120,12 +120,12 @@ var itemScreenshot = {
 				out[i].text = out[i].text.substring(1);
 				
 				// second color in same row will always be blue/'magic'
-                if (out[i].text.match(/(xff)|ÿc/))
+                if (out[i].text.match(/(xffc)|ÿc/))
                     out[i].color.push("#787CE7");
             }
     
 			// using '$' as delimiter for inline color change here..
-            out[i].text = out[i].text.replace(/((xff)|ÿc)([0-9!"+<;.*])/g, "\$");
+            out[i].text = out[i].text.replace(/((xffc)|ÿc)([0-9!"+<;.*])/g, "\$");
             out[i].text = out[i].text.replace(/\\/g, "");
         }
 
