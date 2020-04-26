@@ -96,6 +96,15 @@ Items = {
         "description":"\xffc2Tal Rasha's Horadric Crest (99)\n\xffc2Death Mask\n\xffc0Defense: \xffc3131\n\xffc0Durability: 20 of 20\n\xffc0Required Strength: 55\n\xffc0Required Level: 66\n\xffc310% Mana stolen per hit\n\xffc310% Life stolen per hit\n\xffc3+45 Defense\n\xffc3+60 to Life\n\xffc3+30 to Mana\n\xffc3All Resistances +15\n\xffc3Socketed (1)\n\xffc4\n\xffc4Tal Rasha's Wrappings\n\xffc2Tal Rasha's Horadric Crest\n\xffc2Tal Rasha's Guardianship\n\xffc1Tal Rasha's Lidless Eye\n\xffc1Tal Rasha's Adjudication\n\xffc2\xffc1Tal Rasha's Fine-Spun Cloth$52:358:7:4:0",
         "header":"Header",
         "sockets":["gemsocket"]
+    },
+	
+	"testItem15": {
+        "itemColor":14,
+        "image":"am5",
+        "title":"Fiend Pale Matriarchal Javelin",
+        "description":"\xffc9Fiend Pale (80)\n\xffc9Matriarchal Javelin\n\xffc0Throw Damage: \xffc335 to \xffc379\n\xffc0One-Hand Damage: \xffc330 to 67\n\xffc0Quantity: 59\n\xffc0(Amazon Only)\n\xffc1Required Dexterity: 151\n\xffc1Required Strength: 107\n\xffc1Required Level: 48\n\xffc0Javelin Class - \xffc3Very Fast Attack Speed\n\xffc3+2 to Javelin and Spear Skills (Amazon Only)\n\xffc3+2 to Amazon Skill Levels\n\xffc3+40% Increased Attack Speed\n\xffc3+13 to Maximum Damage\n\xffc3+21 to Attack Rating\n\xffc38% Life stolen per hit$604089369:305:7:5:0",
+        "header":"xxxxxxxxx / xxxxxxxx",
+        "sockets":[]
     }
 
 

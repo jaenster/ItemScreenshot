@@ -14,8 +14,8 @@ var ItemScreenshot = {
     
 	fastMode			: false,	// Draw text using webfont (less pwetty but faster ofc)
     hideItemLevel       : false,	// Hide the item level
-    hideRequirements    : true,		// Hide the red text when you can't wear an item
-    hideSetCompletion   : true,		// Hide the set completion
+    hideRequirements    : false,	// Hide the red text when you can't wear an item
+    hideSetCompletion   : false,	// Hide the set completion
     showItemColor       : true,		// Show the item color at the end of the desc
     drawCursor          : true,		// Draw the cursor
     drawSockets         : true,		// Draw sockets and socketed items
@@ -119,7 +119,8 @@ var ItemScreenshot = {
 
                 if (out[i].text.match(/(xffc)|ÿc/))
                     out[i].color.push(3);
-            }
+			
+			}
 
             out[i].text = out[i].text.replace(/((xffc)|ÿc)([0-9!"+<;.*])/g, "\$");
             out[i].text = out[i].text.replace(/\\/g, "");
@@ -416,9 +417,10 @@ var ItemScreenshot = {
                     
                     graphics.fillStyle = this.textColorMap[strArray1[index].color[0]];
                     
-                    if(strArray1[index].color.length > 1) {
-                        leftText = strArray1[index].text.split("$")[0];
-                        rightText = strArray1[index].text.split("$")[1];
+                    if (strArray1[index].color.length > 1) {
+						let parts = strArray1[index].text.split("$");
+                        let leftText = parts.shift();
+                        let rightText = parts.join('');
                         shift = (ctx.measureText(leftText).width + ctx.measureText(rightText).width) / 2;
                         graphics.textAlign = "left";
                         graphics.fillText(leftText, Math.round(pos.x - shift), Math.round(pos.y));
@@ -440,9 +442,10 @@ var ItemScreenshot = {
                     
                     shift = Font16.measureText(line.text).width / 2;
                     
-                    if(line.color.length > 1) {
-                        leftText = line.text.split("$")[0];
-                        rightText = line.text.split("$")[1];
+                    if (line.color.length > 1) {
+						let parts = line.text.split("$");
+                        let leftText = parts.shift();
+                        let rightText = parts.join('');
                         // Apply back half the wrong measured kerning for char '$' width 10 / 2 = 5
                         Font16.drawText(graphics, pos.x - shift + 5, pos.y, leftText, line.color[0]);
                         Font16.drawText(graphics, pos.x - shift + 5 + Font16.measureText(leftText).width, pos.y, rightText, line.color[1]);
