@@ -14,12 +14,13 @@ var ItemScreenshot = {
     
 	fastMode			: false,	// Draw text using webfont (less pwetty but faster ofc)
     hideItemLevel       : false,	// Hide the item level
-    hideRequirements    : false,	// Hide the red text when you can't wear an item
-    hideSetCompletion   : false,	// Hide the set completion
+    hideRequirements    : true,	    // Hide the red text when you can't wear an item
+    hideSetCompletion   : true,     // Hide the set completion
     showItemColor       : true,		// Show the item color at the end of the desc
     drawCursor          : true,		// Draw the cursor
     drawSockets         : true,		// Draw sockets and socketed items
     drawEthereal        : true,		// Draw ethereal item gfx
+    drawBackground      : true,     // Draw cube background
 
     // ------ No touchy ------
 
@@ -204,16 +205,19 @@ var ItemScreenshot = {
             graphics.fillStyle = "rgba(10, 10, 10, 1)";
             graphics.fillRect(0, 0, canvas.width, canvas.height);
             
-            //console.log("Drawing background");
-            graphics.drawImage(this.bgnd[Y-1], canvas.width / 2 - Left, -9); // top -10 originally
+            if (this.drawBackground) {
+                //console.log("Drawing background");
+                graphics.drawImage(this.bgnd[Y-1], canvas.width / 2 - Left, -9); // top -10 originally
+                
+                //console.log("Drawing item-active background");
+                if (this.drawCursor) {
+                    graphics.fillStyle = "rgba(0, 128, 0, 0.1)";
+                } else {
+                    graphics.fillStyle = "rgba(0, 0, 255, 0.1)";
+                }
 
-            //console.log("Drawing item-active background");
-            if (this.drawCursor) {
-                graphics.fillStyle = "rgba(0, 128, 0, 0.1)";
-            } else {
-                graphics.fillStyle = "rgba(0, 0, 255, 0.1)";
+                graphics.fillRect((canvas.width - image.width) / 2, 5, image.width, image.height);
             }
-            graphics.fillRect((canvas.width - image.width) / 2, 5, image.width, image.height);
             
             //console.log("Drawing item gfx")
             if (this.drawEthereal && item.description.toLowerCase().indexOf("ethereal") > -1) graphics.globalAlpha = 0.5;
